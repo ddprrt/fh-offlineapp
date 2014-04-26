@@ -1,5 +1,6 @@
 var fs = require('fs');
 var http = require('http');
+var util = require('./src/util.js');
 
 http.createServer(function (req, res) {
     // set up some routes
@@ -47,7 +48,7 @@ http.createServer(function (req, res) {
                     res.end('<html><head><title>404 - Not found</title></head><body><h1>Not found.</h1></body></html>');
                     console.log("[404] " + req.method + " to " + req.url);  
                 } else {
-                    res.writeHead(200, "OK", {'Content-Type': 'text/html'});
+                    res.writeHead(200, "OK", {'Content-Type': util.guessMimeType(req.url)});
                     res.write(html);
                     res.end();
                 }
