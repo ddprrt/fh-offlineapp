@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" manifest="mani.manifest">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<h1>Hello World!</h1>
+	<ul id="todos">
+		
+	</ul>
+
+	<input type="text" id="newentry">
+	<button id="send">Abschicken</button>
+	<script src="jquery.min.js"></script>
+	<script>
+
+	var mytodos;
+	var offlinedata = JSON.parse(localStorage.getItem("offlinetodo")) || [];
+
+	function loadData() {
+		$.get('/api', function(data){
+			mytodos = data;
+			if(offlinedata.length) {
+				for(var i = 0; i < offlinedata.length; i++) {
+					mytodos.entries.push(offlinedata[i]);
+				}
+				offlinedata = [];
+				localStorage.setItem("offlinetodo", JSON.stringify(offlinedata));
+				saveData();
+			}
+			localStorage.setItem("todos", JSON.stringify(mytodos));
+			writeData();
+		});
+	}
+
+	function writeData() {
+		$('#todos').html('');
+		var todos = mytodos;
+		for(var i = 0; i < todos.entries.length; i++) {
+			var el = $("<li>" + todos.entries[i] + "</li>");
+			$('#todos').append(el);
+		}
+	}
+
+	function saveData() {
+		$.post('/api', JSON.stringify(mytodos), function() {
+			loadData();
+		});	
+	}
+
+	$(window).on('online', function(){
+		saveData();
+	});
+
+	if(!navigator.onLine) {
+		mytodos = JSON.parse(localStorage.getItem("todos"));
+		writeData();
+	}
+
+	$('#send').on('click', function(e) {
+		var text = $('#newentry').val();
+		mytodos.entries.push(text);
+		if(navigator.onLine) {
+			saveData();
+		} else {
+			offlinedata.push(text);
+			localStorage.setItem("offlinetodo", JSON.stringify(offlinedata));
+		}
+		writeData();
+	});
+
+	loadData();
+
+	</script>
+</body>
+</html>
